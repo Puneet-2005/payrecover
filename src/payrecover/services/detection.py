@@ -14,7 +14,19 @@ def detect_degradation(snapshot: CohortSnapshot, min_samples: int = 30) -> Detec
     standard_error = sqrt(max(variance / snapshot.sample_size, 1e-9))
     z_score = drop / standard_error
     degraded = drop >= 0.10 and z_score >= 3.0
-    severity = "critical" if drop >= 0.40 else "high" if drop >= 0.25 else "medium" if degraded else "none"
-    return DetectionResult(degraded=degraded, severity=severity, absolute_drop=drop,
-                           z_score=z_score, reason="statistically_significant_drop" if degraded else "within_guardrails")
-
+    severity = (
+        "critical"
+        if drop >= 0.40
+        else "high"
+        if drop >= 0.25
+        else "medium"
+        if degraded
+        else "none"
+    )
+    return DetectionResult(
+        degraded=degraded,
+        severity=severity,
+        absolute_drop=drop,
+        z_score=z_score,
+        reason="statistically_significant_drop" if degraded else "within_guardrails",
+    )

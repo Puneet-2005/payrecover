@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import StrEnum
 from hashlib import sha256
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 
 class PaymentStatus(StrEnum):
@@ -30,10 +30,17 @@ class PaymentEvent(BaseModel):
     status: PaymentStatus
     error_code: str | None = None
     latency_ms: int = Field(ge=0)
-    occurred_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    occurred_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+
+    @field_validator("occurred_at")
+    @classmethod
+    def require_timezone_and_normalize_utc(cls, value: datetime) -> datetime:
+        if value.tzinfo is None or value.utcoffset() is None:
+            raise ValueError("occurred_at must include a timezone")
+        return value.astimezone(UTC)
 
     @model_validator(mode="after")
-    def validate_failure_reason(self) -> "PaymentEvent":
+    def validate_failure_reason(self) -> PaymentEvent:
         if self.status == PaymentStatus.FAILED and not self.error_code:
             raise ValueError("failed payments require error_code")
         return self
@@ -74,4 +81,3 @@ class RecoveryDecision(BaseModel):
 def recovery_idempotency_key(payment_id: str, action: RecoveryAction, attempt: int) -> str:
     raw = f"{payment_id}:{action.value}:{attempt}".encode()
     return sha256(raw).hexdigest()
-

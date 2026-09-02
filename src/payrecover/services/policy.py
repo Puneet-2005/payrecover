@@ -1,6 +1,5 @@
 from payrecover.domain.models import RecoveryAction, RecoveryDecision
 
-
 SAFE_POLICIES: dict[str, RecoveryDecision] = {
     "network_timeout": RecoveryDecision(action=RecoveryAction.RETRY_NOW, permitted=True,
         retry_after_seconds=30, max_attempts=2, reason="transient network failure"),
@@ -19,7 +18,10 @@ def decide_recovery(error_code: str, attempt: int = 0) -> RecoveryDecision:
         return RecoveryDecision(action=RecoveryAction.ESCALATE, permitted=False, max_attempts=0,
                                 reason="unknown failure requires human review")
     if attempt >= decision.max_attempts:
-        return RecoveryDecision(action=RecoveryAction.ESCALATE, permitted=False, max_attempts=decision.max_attempts,
-                                reason="retry stopping rule reached")
+        return RecoveryDecision(
+            action=RecoveryAction.ESCALATE,
+            permitted=False,
+            max_attempts=decision.max_attempts,
+            reason="retry stopping rule reached",
+        )
     return decision
-

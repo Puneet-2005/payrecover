@@ -3,10 +3,24 @@ name = "payrecover"
 version = "0.1.0"
 description = "Payment degradation detection and bounded revenue recovery engine"
 requires-python = ">=3.12"
-dependencies = ["fastapi>=0.115,<1", "uvicorn[standard]>=0.30,<1", "pydantic>=2.9,<3", "sqlalchemy>=2.0,<3", "psycopg[binary]>=3.2,<4"]
+dependencies = [
+    "alembic>=1.18,<2",
+    "fastapi>=0.115,<1",
+    "pydantic>=2.9,<3",
+    "pydantic-settings>=2.6,<3",
+    "psycopg[binary]>=3.2,<4",
+    "sqlalchemy>=2.0,<3",
+    "uvicorn[standard]>=0.30,<1",
+]
 
 [project.optional-dependencies]
-dev = ["pytest>=8.3,<9", "httpx>=0.27,<1", "ruff>=0.8,<1", "mypy>=1.13,<2"]
+dev = [
+    "httpx>=0.27,<1",
+    "mypy>=1.13,<2",
+    "pytest>=8.3,<9",
+    "ruff>=0.8,<1",
+    "testcontainers[postgres]>=4,<5",
+]
 
 [build-system]
 requires = ["hatchling"]
@@ -18,6 +32,7 @@ packages = ["src/payrecover"]
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 testpaths = ["tests"]
+markers = ["integration: requires a disposable PostgreSQL 17 database"]
 
 [tool.ruff]
 line-length = 100
@@ -25,4 +40,3 @@ target-version = "py312"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP"]
-

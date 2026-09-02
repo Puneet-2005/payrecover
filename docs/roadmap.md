@@ -9,13 +9,21 @@
 - Idempotency-key primitive
 - FastAPI endpoints, tests, Docker and CI
 
-## Phase 2 — persistence and real ingestion
+## Phase 2A — normalized-event persistence
 
-- SQLAlchemy models and Alembic migrations
-- Webhook signature verification
-- PostgreSQL event store and append-only audit log
-- Redis Streams consumer with dead-letter handling
-- Database uniqueness constraint for idempotency
+- Typed configuration and lazy PostgreSQL sessions
+- SQLAlchemy 2.x payment-event and audit models
+- Alembic initial migration
+- PostgreSQL event store and application-layer append-only audit repository
+- Optional direct-ingestion idempotency key enforced by database uniqueness
+- Unit tests and PostgreSQL 17 Testcontainer acceptance tests
+
+## Phase 2B — later reviewable milestone
+
+- Razorpay webhook adapter and signature verification
+- Provider event-id idempotency
+- Remaining persistence tables, proposed separately before implementation
+- Redis Streams consumer with dead-letter handling remains deferred until explicitly approved
 
 ## Phase 3 — incident lifecycle
 
@@ -41,4 +49,3 @@
 - Public-repo cleanup, SECURITY.md and contribution guide
 
 Do not add an LLM until Phases 2 and 3 pass deterministic tests.
-

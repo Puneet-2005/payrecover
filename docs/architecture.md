@@ -16,3 +16,16 @@ PayRecover receives immutable payment events, aggregates rolling cohort health, 
 
 See `docs/roadmap.md` for the order in which these boundaries should be implemented.
 
+## Phase 2A persistence boundary
+
+The normalized API flow is currently:
+
+`validated request -> ingestion service -> unit of work -> payment event + audit -> commit -> 202`
+
+An optional client `Idempotency-Key` is stored as the source event identity. PostgreSQL uniqueness is authoritative: the same key and canonical payload returns the stored event, while the same key with different content is rejected. Requests without a key receive a new internal identity and are not idempotent. Generated timestamps and receipt metadata are excluded from the canonical payload digest.
+
+SQLAlchemy models and sessions live under `payrecover.infrastructure.database`. Domain services depend on repository and unit-of-work protocols and do not import SQLAlchemy. Repositories may flush to obtain database-generated IDs, but only the unit of work commits or rolls back. The payment event and its audit record are one atomic transaction.
+
+All event and audit timestamps use timezone-aware PostgreSQL `TIMESTAMPTZ`. Connections use UTC, API input is normalized to UTC, and naive API timestamps are invalid. Monetary values are integer paise in `BIGINT` columns.
+
+There is no durable stream, Razorpay webhook adapter, signature verification or recovery execution in Phase 2A.

@@ -5,6 +5,13 @@ services:
     environment:
       DATABASE_URL: postgresql+psycopg://payrecover:payrecover@postgres:5432/payrecover
     depends_on:
+      migrate: {condition: service_completed_successfully}
+  migrate:
+    build: .
+    command: ["alembic", "upgrade", "head"]
+    environment:
+      DATABASE_URL: postgresql+psycopg://payrecover:payrecover@postgres:5432/payrecover
+    depends_on:
       postgres: {condition: service_healthy}
   postgres:
     image: postgres:17-alpine
@@ -21,4 +28,3 @@ services:
   redis:
     image: redis:7-alpine
     ports: ["6379:6379"]
-

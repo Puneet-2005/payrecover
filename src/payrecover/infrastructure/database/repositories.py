@@ -1,0 +1,112 @@
+from dataclasses import asdict
+from uuid import UUID
+
+from sqlalchemy import select
+from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy.orm import Session
+
+from payrecover.domain.records import (
+    NewAuditRecord,
+    NewPaymentEvent,
+    StoredAuditRecord,
+    StoredPaymentEvent,
+)
+from payrecover.infrastructure.database.models import AuditRecordRow, PaymentEventRow
+
+
+def _stored_payment_event(row: PaymentEventRow) -> StoredPaymentEvent:
+    return StoredPaymentEvent(
+        id=row.id,
+        schema_version=row.schema_version,
+        source=row.source,
+        source_event_id=row.source_event_id,
+        payload_sha256=row.payload_sha256,
+        payment_id=row.payment_id,
+        merchant_id=row.merchant_id,
+        method=row.method,
+        issuer=row.issuer,
+        provider=row.provider,
+        amount_paise=row.amount_paise,
+        status=row.status,
+        error_code=row.error_code,
+        latency_ms=row.latency_ms,
+        cohort_key=row.cohort_key,
+        occurred_at=row.occurred_at,
+        received_at=row.received_at,
+    )
+
+
+def _stored_audit_record(row: AuditRecordRow) -> StoredAuditRecord:
+    return StoredAuditRecord(
+        id=row.id,
+        correlation_id=row.correlation_id,
+        payment_event_id=row.payment_event_id,
+        event_type=row.event_type,
+        actor_type=row.actor_type,
+        actor_ref_digest=row.actor_ref_digest,
+        details=row.details,
+        recorded_at=row.recorded_at,
+    )
+
+
+class SqlAlchemyPaymentEventRepository:
+    def __init__(self, session: Session) -> None:
+        self._session = session
+
+    def add_if_absent(self, event: NewPaymentEvent) -> tuple[StoredPaymentEvent, bool]:
+        statement = (
+            insert(PaymentEventRow)
+            .values(**asdict(event))
+            .on_conflict_do_nothing(constraint="uq_payment_events_source_merchant_event")
+            .returning(PaymentEventRow)
+        )
+        inserted = self._session.execute(statement).scalar_one_or_none()
+        if inserted is not None:
+            return _stored_payment_event(inserted), True
+
+        existing = self._session.execute(
+            select(PaymentEventRow).where(
+                PaymentEventRow.source == event.source,
+                PaymentEventRow.merchant_id == event.merchant_id,
+                PaymentEventRow.source_event_id == event.source_event_id,
+            )
+        ).scalar_one()
+        return _stored_payment_event(existing), False
+
+    def get_by_source_identity(
+        self, source: str, merchant_id: str, source_event_id: str
+    ) -> StoredPaymentEvent | None:
+        row = self._session.execute(
+            select(PaymentEventRow).where(
+                PaymentEventRow.source == source,
+                PaymentEventRow.merchant_id == merchant_id,
+                PaymentEventRow.source_event_id == source_event_id,
+            )
+        ).scalar_one_or_none()
+        return _stored_payment_event(row) if row is not None else None
+
+
+class SqlAlchemyAuditRepository:
+    def __init__(self, session: Session) -> None:
+        self._session = session
+
+    def append(self, record: NewAuditRecord) -> StoredAuditRecord:
+        row = AuditRecordRow(
+            correlation_id=record.correlation_id,
+            payment_event_id=record.payment_event_id,
+            event_type=record.event_type,
+            actor_type=record.actor_type,
+            actor_ref_digest=record.actor_ref_digest,
+            details=record.details,
+        )
+        self._session.add(row)
+        self._session.flush()
+        return _stored_audit_record(row)
+
+    def list_for_payment_event(self, payment_event_id: UUID) -> list[StoredAuditRecord]:
+        rows = self._session.execute(
+            select(AuditRecordRow)
+            .where(AuditRecordRow.payment_event_id == payment_event_id)
+            .order_by(AuditRecordRow.id)
+        ).scalars()
+        return [_stored_audit_record(row) for row in rows]

@@ -9,6 +9,8 @@ jobs:
         with: {python-version: "3.12"}
       - run: pip install -e '.[dev]'
       - run: ruff check .
-      - run: pytest -q
+      - run: pytest -q -m "not integration"
+      - run: pytest -q -m integration
+        env:
+          PAYRECOVER_REQUIRE_POSTGRES_TESTS: "1"
       - run: docker build -t payrecover:test .
-
