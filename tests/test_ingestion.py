@@ -45,7 +45,10 @@ class FakePaymentEvents:
     def __init__(self) -> None:
         self.rows: dict[tuple[str, str, str], StoredPaymentEvent] = {}
 
-    def add_if_absent(self, event: NewPaymentEvent) -> tuple[StoredPaymentEvent, bool]:
+    def add_if_absent(
+        self, event: NewPaymentEvent, *, identity_scope=None
+    ) -> tuple[StoredPaymentEvent, bool]:
+        del identity_scope
         identity = (event.source, event.merchant_id, event.source_event_id)
         if identity in self.rows:
             return self.rows[identity], False

@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from payrecover.domain.records import (
     NewAuditRecord,
     NewPaymentEvent,
+    SourceIdentityScope,
     StoredAuditRecord,
     StoredPaymentEvent,
 )
@@ -25,11 +26,18 @@ def _stored_payment_event(row: PaymentEventRow) -> StoredPaymentEvent:
         merchant_id=row.merchant_id,
         method=row.method,
         issuer=row.issuer,
+        issuer_availability=row.issuer_availability,
         provider=row.provider,
+        provider_availability=row.provider_availability,
         amount_paise=row.amount_paise,
         status=row.status,
         error_code=row.error_code,
+        error_code_availability=row.error_code_availability,
+        error_source=row.error_source,
+        error_step=row.error_step,
+        error_reason=row.error_reason,
         latency_ms=row.latency_ms,
+        latency_availability=row.latency_availability,
         cohort_key=row.cohort_key,
         occurred_at=row.occurred_at,
         received_at=row.received_at,
@@ -53,23 +61,30 @@ class SqlAlchemyPaymentEventRepository:
     def __init__(self, session: Session) -> None:
         self._session = session
 
-    def add_if_absent(self, event: NewPaymentEvent) -> tuple[StoredPaymentEvent, bool]:
+    def add_if_absent(
+        self,
+        event: NewPaymentEvent,
+        *,
+        identity_scope: SourceIdentityScope = SourceIdentityScope.MERCHANT,
+    ) -> tuple[StoredPaymentEvent, bool]:
         statement = (
             insert(PaymentEventRow)
             .values(**asdict(event))
-            .on_conflict_do_nothing(constraint="uq_payment_events_source_merchant_event")
+            .on_conflict_do_nothing()
             .returning(PaymentEventRow)
         )
         inserted = self._session.execute(statement).scalar_one_or_none()
         if inserted is not None:
             return _stored_payment_event(inserted), True
 
+        identity_conditions = [
+            PaymentEventRow.source == event.source,
+            PaymentEventRow.source_event_id == event.source_event_id,
+        ]
+        if identity_scope == SourceIdentityScope.MERCHANT:
+            identity_conditions.append(PaymentEventRow.merchant_id == event.merchant_id)
         existing = self._session.execute(
-            select(PaymentEventRow).where(
-                PaymentEventRow.source == event.source,
-                PaymentEventRow.merchant_id == event.merchant_id,
-                PaymentEventRow.source_event_id == event.source_event_id,
-            )
+            select(PaymentEventRow).where(*identity_conditions)
         ).scalar_one()
         return _stored_payment_event(existing), False
 

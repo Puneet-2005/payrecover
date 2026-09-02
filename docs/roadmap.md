@@ -18,11 +18,13 @@
 - Optional direct-ingestion idempotency key enforced by database uniqueness
 - Unit tests and PostgreSQL 17 Testcontainer acceptance tests
 
-## Phase 2B — later reviewable milestone
+## Phase 2B — secure Razorpay test-webhook ingestion
 
-- Razorpay webhook adapter and signature verification
-- Provider event-id idempotency
-- Remaining persistence tables, proposed separately before implementation
+- Raw-body HMAC-SHA256 verification and bounded request ingestion
+- Strict payment webhook allowlist with privacy-safe normalization
+- Provider event-ID uniqueness, exact replay handling and sanitized conflict auditing
+- Versioned nullable payment dimensions with explicit availability states
+- Test-mode only; no payment creation, retry or recovery execution
 - Redis Streams consumer with dead-letter handling remains deferred until explicitly approved
 
 ## Phase 3 — incident lifecycle

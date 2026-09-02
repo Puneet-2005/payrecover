@@ -67,8 +67,11 @@ def test_alembic_upgrades_an_empty_postgresql_database(migrated_database_url: st
     ("changes", "constraint_name"),
     [
         ({"amount_paise": 0}, "ck_payment_events_amount_paise_positive"),
-        ({"latency_ms": -1}, "ck_payment_events_latency_ms_nonnegative"),
-        ({"error_code": None}, "ck_payment_events_failed_event_has_error_code"),
+        ({"latency_ms": -1}, "ck_payment_events_latency_matches_availability"),
+        (
+            {"error_code": None},
+            "ck_payment_events_error_code_matches_availability",
+        ),
     ],
 )
 def test_payment_event_schema_constraints(clean_database, changes, constraint_name):
@@ -78,6 +81,13 @@ def test_payment_event_schema_constraints(clean_database, changes, constraint_na
         "source": "normalized_api",
         "source_event_id": "constraint-test",
         "payload_sha256": "a" * 64,
+        "issuer_availability": "provided",
+        "provider_availability": "provided",
+        "error_code_availability": "provided",
+        "error_source": None,
+        "error_step": None,
+        "error_reason": None,
+        "latency_availability": "provided",
         "cohort_key": "upi:bank_x:phonepe:band_3",
         "occurred_at": datetime.now(UTC),
         **changes,

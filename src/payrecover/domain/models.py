@@ -12,6 +12,13 @@ class PaymentStatus(StrEnum):
     FAILED = "failed"
 
 
+class FieldAvailability(StrEnum):
+    PROVIDED = "provided"
+    MISSING = "missing"
+    NOT_APPLICABLE = "not_applicable"
+    REDACTED = "redacted"
+
+
 class RecoveryAction(StrEnum):
     RETRY_NOW = "retry_now"
     WAIT_AND_RETRY = "wait_and_retry"

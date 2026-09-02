@@ -1,0 +1,1 @@
+"""Verified external webhook adapters."""

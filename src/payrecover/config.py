@@ -16,6 +16,7 @@ class Settings(BaseSettings):
 
     persistence_enabled: bool = True
     database_url: SecretStr | None = Field(default=None, repr=False)
+    razorpay_webhook_secret: SecretStr | None = Field(default=None, repr=False)
 
     @model_validator(mode="after")
     def validate_database_url(self) -> "Settings":
@@ -37,6 +38,14 @@ class Settings(BaseSettings):
         if not self.persistence_enabled or self.database_url is None:
             raise RuntimeError("PostgreSQL persistence is not configured")
         return self.database_url.get_secret_value()
+
+    def require_razorpay_webhook_secret(self) -> str:
+        if self.razorpay_webhook_secret is None:
+            raise RuntimeError("Razorpay webhook ingestion is not configured")
+        secret = self.razorpay_webhook_secret.get_secret_value()
+        if not secret:
+            raise RuntimeError("Razorpay webhook ingestion is not configured")
+        return secret
 
 
 @lru_cache(maxsize=1)

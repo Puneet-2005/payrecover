@@ -4,6 +4,7 @@ from typing import Annotated
 from fastapi import Depends, FastAPI, Header, HTTPException, status
 
 from payrecover.api.dependencies import UnitOfWorkFactory, get_unit_of_work_factory
+from payrecover.api.razorpay import router as razorpay_router
 from payrecover.domain.models import CohortSnapshot, PaymentEvent, RecoveryDecision
 from payrecover.services.detection import detect_degradation
 from payrecover.services.ingestion import (
@@ -19,6 +20,7 @@ logger = logging.getLogger(__name__)
 
 def create_app() -> FastAPI:
     application = FastAPI(title="PayRecover API", version="0.1.0")
+    application.include_router(razorpay_router)
 
     @application.get("/health")
     def health() -> dict[str, str]:
@@ -37,7 +39,7 @@ def create_app() -> FastAPI:
                 pattern=r"^[\x21-\x7e]+$",
             ),
         ] = None,
-    ) -> dict[str, str]:
+    ) -> dict[str, str | None]:
         try:
             with unit_of_work_factory() as unit_of_work:
                 result = ingest_payment_event(event, idempotency_key, unit_of_work)

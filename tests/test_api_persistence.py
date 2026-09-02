@@ -37,7 +37,8 @@ class FailingUnitOfWork:
 
 
 class SuccessfulPaymentEvents:
-    def add_if_absent(self, event):
+    def add_if_absent(self, event, *, identity_scope=None):
+        del identity_scope
         return (
             StoredPaymentEvent(
                 id=uuid4(),

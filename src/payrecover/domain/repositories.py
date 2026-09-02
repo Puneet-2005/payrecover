@@ -4,13 +4,19 @@ from uuid import UUID
 from payrecover.domain.records import (
     NewAuditRecord,
     NewPaymentEvent,
+    SourceIdentityScope,
     StoredAuditRecord,
     StoredPaymentEvent,
 )
 
 
 class PaymentEventRepository(Protocol):
-    def add_if_absent(self, event: NewPaymentEvent) -> tuple[StoredPaymentEvent, bool]: ...
+    def add_if_absent(
+        self,
+        event: NewPaymentEvent,
+        *,
+        identity_scope: SourceIdentityScope = SourceIdentityScope.MERCHANT,
+    ) -> tuple[StoredPaymentEvent, bool]: ...
 
     def get_by_source_identity(
         self, source: str, merchant_id: str, source_event_id: str

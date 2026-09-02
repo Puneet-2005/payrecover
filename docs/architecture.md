@@ -29,3 +29,15 @@ SQLAlchemy models and sessions live under `payrecover.infrastructure.database`. 
 All event and audit timestamps use timezone-aware PostgreSQL `TIMESTAMPTZ`. Connections use UTC, API input is normalized to UTC, and naive API timestamps are invalid. Monetary values are integer paise in `BIGINT` columns.
 
 There is no durable stream, Razorpay webhook adapter, signature verification or recovery execution in Phase 2A.
+
+## Phase 2B webhook boundary
+
+The Razorpay test-mode flow is:
+
+`bounded raw bytes -> HMAC verification -> strict allowlist normalization -> Phase 2A ingestion service -> payment event + audit -> commit -> 200`
+
+Headers and declared body size are validated before reading the body. The actual streamed byte count is independently limited to 256 KiB. JSON is parsed only after HMAC-SHA256 verification over the original bytes. The provider event ID uses a PostgreSQL partial unique index as the concurrency authority.
+
+Razorpay events use normalized schema version 2. Missing, not-applicable and privacy-redacted issuer/provider/latency/error-code dimensions are represented explicitly rather than with invented values. Non-INR currency subunits are not stored as paise. Rows lacking the complete Phase 1 dimensions have a null full cohort key and remain available through merchant/method/time fields.
+
+An exact replay performs no second audit insert. A conflicting replay first rolls back event ingestion, then uses a new unit of work to append `payment_event.idempotency_conflict` against the original event. Only after that audit commits does the endpoint acknowledge the conflict. No webhook path authorizes or executes money movement.
