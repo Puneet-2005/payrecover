@@ -39,6 +39,8 @@ pytest -q -m integration
 uvicorn payrecover.api.main:app --reload
 ```
 
+Docker Compose publishes PostgreSQL on `localhost:5433` by default so it does not conflict with a PostgreSQL installation already using the conventional host port 5432. Host-side tools, including Alembic and the local API process, connect through `localhost:5433`. Compose services continue to connect to PostgreSQL internally through `postgres:5432`. Set `POSTGRES_HOST_PORT` if a different host port is required, and keep the host-side `DATABASE_URL` port aligned with it.
+
 6. Open `http://127.0.0.1:8000/docs`.
 
 Alternatively run `docker compose up --build`.
