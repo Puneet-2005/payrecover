@@ -27,10 +27,23 @@
 - Test-mode only; no payment creation, retry or recovery execution
 - Redis Streams consumer with dead-letter handling remains deferred until explicitly approved
 
-## Phase 3 — incident lifecycle
+## Phase 3A1 — observational analytics kernel
 
-- Explicit incident/recovery state machine
-- Rolling cohort aggregation
+- Versioned cohort-v2 identity with explicit dimension availability
+- Completed UTC baseline and observation windows
+- Merchant-scoped PostgreSQL aggregation
+- Decimal-based deterministic degradation detector-v2
+- Typed results only; no incident persistence or recovery action
+
+## Phase 3A2 — incident lifecycle
+
+- Persistent incident state machine
+- Idempotent controlled scans and concurrent incident deduplication
+- Incident observations, resolution hysteresis and append-only audits
+- Merchant-scoped read-only incident APIs
+
+## Later Phase 3 work
+
 - Root-cause evidence ranking
 - Recovery executor against a local Razorpay test adapter
 - Backoff scheduler, stopping rules and human approval queue

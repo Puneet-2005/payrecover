@@ -124,6 +124,21 @@ class PaymentEventRow(Base):
             "occurred_at",
         ),
         Index(
+            "ix_payment_events_merchant_occurred_analytics",
+            "merchant_id",
+            "occurred_at",
+            postgresql_include=[
+                "method",
+                "issuer",
+                "issuer_availability",
+                "provider",
+                "provider_availability",
+                "amount_paise",
+                "status",
+                "error_code",
+            ],
+        ),
+        Index(
             "uq_payment_events_razorpay_event_id",
             "source_event_id",
             unique=True,

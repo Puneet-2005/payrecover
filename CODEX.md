@@ -10,5 +10,4 @@ Read `README.md`, `docs/architecture.md`, `docs/threat-model.md`, and `docs/road
 - Never introduce real credentials or live payment execution.
 - Keep PR-sized changes and explain them so the student owner can defend them in an interview.
 
-First recommended task: implement Phase 2 PostgreSQL persistence with Alembic migrations and repository tests. Do not build the dashboard first.
-
+Current boundary: Phase 3A1 is observational cohort analytics only. Incident persistence and lifecycle orchestration begin in Phase 3A2 only after an approved design. Do not build recovery execution or the dashboard first.

@@ -1,6 +1,7 @@
 from typing import Protocol
 from uuid import UUID
 
+from payrecover.domain.analytics import AnalyticsWindow, CohortAggregate
 from payrecover.domain.records import (
     NewAuditRecord,
     NewPaymentEvent,
@@ -29,12 +30,21 @@ class AuditRepository(Protocol):
     def list_for_payment_event(self, payment_event_id: UUID) -> list[StoredAuditRecord]: ...
 
 
+class PaymentAnalyticsRepository(Protocol):
+    def aggregate_for_merchant(
+        self, merchant_id: str, window: AnalyticsWindow
+    ) -> tuple[CohortAggregate, ...]: ...
+
+
 class UnitOfWork(Protocol):
     @property
     def payment_events(self) -> PaymentEventRepository: ...
 
     @property
     def audit_records(self) -> AuditRepository: ...
+
+    @property
+    def payment_analytics(self) -> PaymentAnalyticsRepository: ...
 
     def commit(self) -> None: ...
 

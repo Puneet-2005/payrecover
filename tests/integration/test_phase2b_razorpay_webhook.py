@@ -277,7 +277,7 @@ def test_phase2b_migration_upgrade_downgrade_upgrade_cycle(
         assert "issuer_availability" in {
             column["name"] for column in inspect(cycle_engine).get_columns("payment_events")
         }
-        command.downgrade(config, "-1")
+        command.downgrade(config, "20260902_0001")
         assert "issuer_availability" not in {
             column["name"] for column in inspect(cycle_engine).get_columns("payment_events")
         }

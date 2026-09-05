@@ -4,7 +4,7 @@ An engineering-first payment degradation detection and bounded revenue recovery 
 
 ## What exists today
 
-This repository contains the Phase 1 deterministic foundation, Phase 2A persistence and the focused Phase 2B Razorpay test-webhook boundary. It stores normalized payment events and append-only application audit records in PostgreSQL through SQLAlchemy repositories, a unit of work and Alembic migrations. Redis remains provisioned but is not wired into the application.
+This repository contains the Phase 1 deterministic foundation, Phase 2A persistence, the focused Phase 2B Razorpay test-webhook boundary and the Phase 3A1 observational analytics kernel. It stores normalized payment events and append-only application audit records in PostgreSQL through SQLAlchemy repositories, a unit of work and Alembic migrations. Redis remains provisioned but is not wired into the application.
 
 ## Safety invariant
 
@@ -116,6 +116,16 @@ print(urllib.request.urlopen(request).read().decode())
 curl -X POST http://127.0.0.1:8000/v1/detections/evaluate -H "Content-Type: application/json" -d '{"cohort_key":"upi:bank_x:phonepe:band_3","baseline_success_rate":0.92,"observed_success_rate":0.45,"sample_size":200,"failed_count":110,"failed_amount_paise":38000000,"dominant_error_code":"issuer_unavailable"}'
 ```
 
+## Phase 3A1 analytics kernel
+
+Phase 3A1 adds a typed, read-only analytics service for future incident scanning. It groups normalized database fields into deterministic `cohort-v2` identities containing merchant, method, issuer/provider values and availability states, and one of six fixed integer-paise amount bands. The legacy `payment_events.cohort_key` is not an authority for this identity.
+
+Given a caller-supplied aware timestamp, analytics uses the latest completed 15-minute UTC observation window after a five-minute completion delay. Its baseline is the immediately preceding seven days, and both intervals are half-open. A PostgreSQL aggregate query calculates counts, integer-paise failure totals and a deterministic top-20 error-code distribution without loading individual payment rows into Python.
+
+Detection version `degradation-v2` requires at least 100 baseline events and 30 observation events. It combines a success-rate drop of at least 0.10 with a Laplace-smoothed two-sample score of at least 3.0. Eligible results are `healthy`, `watch` or `degraded`; ineligible results are explicitly `insufficient`. All rates and detector calculations use deterministic `Decimal` arithmetic.
+
+This kernel is not connected to an HTTP route or background task. It does not persist incidents, authorize recovery, create or retry payments, or call Razorpay. Incident persistence, scan idempotency, lifecycle transitions, incident audits, read APIs and controlled scan triggering remain deferred to Phase 3A2.
+
 ## Continue with Codex
 
 Tell Codex:
@@ -128,6 +138,7 @@ This forces the work into explainable engineering increments instead of uncontro
 
 - Test-mode and simulated payments only.
 - Phase 2B includes secure Razorpay test-webhook ingestion only; it does not create, retry or execute payments.
+- Phase 3A1 is observational analytics only; it does not persist incidents or create, retry or execute payments.
 - No invented evaluation metrics.
 - Not production-ready or certified by Razorpay.
 - Apache-2.0 licensed; see `LICENSE`.

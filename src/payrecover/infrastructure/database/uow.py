@@ -2,6 +2,9 @@ from types import TracebackType
 
 from sqlalchemy.orm import Session
 
+from payrecover.infrastructure.database.analytics import (
+    SqlAlchemyPaymentAnalyticsRepository,
+)
 from payrecover.infrastructure.database.repositories import (
     SqlAlchemyAuditRepository,
     SqlAlchemyPaymentEventRepository,
@@ -15,12 +18,14 @@ class SqlAlchemyUnitOfWork:
         self.session: Session | None = None
         self.payment_events: SqlAlchemyPaymentEventRepository
         self.audit_records: SqlAlchemyAuditRepository
+        self.payment_analytics: SqlAlchemyPaymentAnalyticsRepository
         self._committed = False
 
     def __enter__(self) -> "SqlAlchemyUnitOfWork":
         self.session = self._session_factory()
         self.payment_events = SqlAlchemyPaymentEventRepository(self.session)
         self.audit_records = SqlAlchemyAuditRepository(self.session)
+        self.payment_analytics = SqlAlchemyPaymentAnalyticsRepository(self.session)
         self._committed = False
         return self
 

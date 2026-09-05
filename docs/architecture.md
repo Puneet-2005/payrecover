@@ -41,3 +41,17 @@ Headers and declared body size are validated before reading the body. The actual
 Razorpay events use normalized schema version 2. Missing, not-applicable and privacy-redacted issuer/provider/latency/error-code dimensions are represented explicitly rather than with invented values. Non-INR currency subunits are not stored as paise. Rows lacking the complete Phase 1 dimensions have a null full cohort key and remain available through merchant/method/time fields.
 
 An exact replay performs no second audit insert. A conflicting replay first rolls back event ingestion, then uses a new unit of work to append `payment_event.idempotency_conflict` against the original event. Only after that audit commits does the endpoint acknowledge the conflict. No webhook path authorizes or executes money movement.
+
+## Phase 3A1 analytics boundary
+
+Phase 3A1 adds an observational path:
+
+`caller-supplied time -> completed UTC windows -> PostgreSQL cohort aggregation -> deterministic detector-v2 -> typed result`
+
+`cohort-v2` uses the exact normalized merchant, method, issuer/provider value and availability state, plus a fixed amount band. Its canonical compact JSON is hashed with SHA-256. Missing, not-applicable and redacted values remain distinct, and the legacy event `cohort_key` is ignored.
+
+Amount bands in paise are `[1, 50000)`, `[50000, 100000)`, `[100000, 200000)`, `[200000, 500000)`, `[500000, 1000000)` and `[1000000, +inf)`. The aggregation query covers one merchant, a seven-day baseline and a 15-minute observation window. The baseline ends where the observation starts; both use half-open `occurred_at` intervals. A five-minute completion delay is applied before alignment.
+
+Detector `degradation-v2` uses integer counts and precision-50 `Decimal` arithmetic. For baseline successes `Bs` of `Bn` and observation successes `Os` of `On`, its stabilized pooled proportion is `p = (Bs + Os + 1) / (Bn + On + 2)` and its score denominator is `sqrt(p * (1-p) * (1/Bn + 1/On))`. Degradation requires at least 100 baseline and 30 observation events, an absolute success-rate drop of at least 0.10, and a score of at least 3.0. Severity starts at drops of 0.10, 0.20 and 0.35 for medium, high and critical respectively.
+
+The analytics repository returns domain records and never commits. There is no HTTP endpoint, scheduler, scan record, incident table, lifecycle transition, audit write or recovery action in Phase 3A1. Those orchestration and persistence concerns remain Phase 3A2 work.
