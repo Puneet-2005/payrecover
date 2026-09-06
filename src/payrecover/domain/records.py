@@ -101,6 +101,7 @@ class NewAuditRecord:
     actor_type: str
     actor_ref_digest: str | None
     details: dict[str, Any]
+    incident_id: int | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -113,3 +114,4 @@ class StoredAuditRecord:
     actor_ref_digest: str | None
     details: dict[str, Any]
     recorded_at: datetime
+    incident_id: int | None = None

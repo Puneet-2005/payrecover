@@ -10,4 +10,4 @@ Read `README.md`, `docs/architecture.md`, `docs/threat-model.md`, and `docs/road
 - Never introduce real credentials or live payment execution.
 - Keep PR-sized changes and explain them so the student owner can defend them in an interview.
 
-Current boundary: Phase 3A1 is observational cohort analytics only. Incident persistence and lifecycle orchestration begin in Phase 3A2 only after an approved design. Do not build recovery execution or the dashboard first.
+Current boundary: Phase 3A2 adds persistent incident scanning, lifecycle history, a local CLI and merchant-scoped development read APIs. Reuse the Phase 3A1 analytics kernel. Recovery execution, payment actions, AI, scheduling, Redis integration and dashboard work require a separate authorization.

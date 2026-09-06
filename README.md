@@ -4,7 +4,7 @@ An engineering-first payment degradation detection and bounded revenue recovery 
 
 ## What exists today
 
-This repository contains the Phase 1 deterministic foundation, Phase 2A persistence, the focused Phase 2B Razorpay test-webhook boundary and the Phase 3A1 observational analytics kernel. It stores normalized payment events and append-only application audit records in PostgreSQL through SQLAlchemy repositories, a unit of work and Alembic migrations. Redis remains provisioned but is not wired into the application.
+This repository contains the Phase 1 deterministic foundation, Phase 2A persistence, the Phase 2B Razorpay test-webhook boundary, the Phase 3A1 analytics kernel and Phase 3A2 persistent incident scanning. PostgreSQL stores normalized events, incident evidence and application append-only audits through SQLAlchemy repositories, a unit of work and Alembic migrations. Redis remains provisioned but is not wired into the application.
 
 ## Safety invariant
 
@@ -124,7 +124,31 @@ Given a caller-supplied aware timestamp, analytics uses the latest completed 15-
 
 Detection version `degradation-v2` requires at least 100 baseline events and 30 observation events. It combines a success-rate drop of at least 0.10 with a Laplace-smoothed two-sample score of at least 3.0. Eligible results are `healthy`, `watch` or `degraded`; ineligible results are explicitly `insufficient`. All rates and detector calculations use deterministic `Decimal` arithmetic.
 
-This kernel is not connected to an HTTP route or background task. It does not persist incidents, authorize recovery, create or retry payments, or call Razorpay. Incident persistence, scan idempotency, lifecycle transitions, incident audits, read APIs and controlled scan triggering remain deferred to Phase 3A2.
+The analytics kernel remains independent of HTTP and background tasks. Phase 3A2 calls it within an explicit incident-scan transaction; the kernel itself does not persist or authorize actions.
+
+## Phase 3A2 local incident scans
+
+After applying Alembic migrations to your configured development PostgreSQL database:
+
+```powershell
+python -m payrecover.cli --merchant-id acc_LocalSynthetic
+python -m payrecover.cli --merchant-id acc_LocalSynthetic --as-of 2026-09-05T12:20:00Z
+```
+
+The CLI reads its clock once, rejects future or naive timestamps, and prints a safe JSON scan summary. Repeating a committed merchant/window scan returns the stored summary with `replayed: true`. An unseen older window is rejected. The first successful commit freezes the window: late events cannot rewrite its incident results, but can enter subsequent baselines.
+
+Open incidents resolve after two healthy observations in immediately adjacent 15-minute windows. Watch, insufficient samples, completely absent cohorts and gaps reset consecutiveness. Resolution means the detector's relative health criterion was met; it does not prove that the original underlying outage ended. A later degradation opens a new historical incident.
+
+Local read interfaces:
+
+```text
+GET /v1/incidents?merchant_id=acc_LocalSynthetic&limit=20
+GET /v1/incidents/1?merchant_id=acc_LocalSynthetic&limit=20
+```
+
+Use the returned `next_cursor` as `cursor` to continue. Limits are 1–100; detail pagination applies to observations and always includes the immutable opening observation. Rates and scores serialize as decimal strings, and paise totals as exact integers.
+
+These interfaces have **no authentication**. Merchant filtering is not access control. Bind the API to loopback for local development; do not expose it publicly as a production multi-tenant service. See [incident design and schema](docs/incidents.md) for transaction, pagination, migration and retention details.
 
 ## Continue with Codex
 

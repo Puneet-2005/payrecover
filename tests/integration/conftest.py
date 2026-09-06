@@ -13,7 +13,8 @@ from alembic import command
 from payrecover.infrastructure.database.session import build_engine
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
-REQUIRED_TABLES = {"alembic_version", "audit_records", "payment_events"}
+REQUIRED_TABLES = {"alembic_version", "audit_records", "payment_events", "incident_scan_runs",
+                   "incidents", "incident_observations", "incident_error_counts"}
 
 
 def alembic_config(database_url: str) -> Config:
@@ -74,10 +75,12 @@ def database_engine(migrated_database_url: str) -> Iterator[Engine]:
 def clean_database(database_engine: Engine) -> Iterator[Engine]:
     with database_engine.begin() as connection:
         connection.exec_driver_sql(
-            "TRUNCATE TABLE audit_records, payment_events RESTART IDENTITY CASCADE"
+            "TRUNCATE TABLE audit_records, payment_events, incident_error_counts, "
+            "incident_observations, incidents, incident_scan_runs RESTART IDENTITY CASCADE"
         )
     yield database_engine
     with database_engine.begin() as connection:
         connection.exec_driver_sql(
-            "TRUNCATE TABLE audit_records, payment_events RESTART IDENTITY CASCADE"
+            "TRUNCATE TABLE audit_records, payment_events, incident_error_counts, "
+            "incident_observations, incidents, incident_scan_runs RESTART IDENTITY CASCADE"
         )

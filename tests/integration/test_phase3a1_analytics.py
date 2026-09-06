@@ -113,7 +113,7 @@ def test_phase3a1_migration_upgrade_downgrade_upgrade_cycle(
             "provider_availability, amount_paise, status, error_code)" in definition
         )
 
-        command.downgrade(config, "-1")
+        command.downgrade(config, "20260902_0002")
         assert index_name not in {
             item["name"] for item in inspect(cycle_engine).get_indexes("payment_events")
         }

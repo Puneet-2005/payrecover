@@ -21,6 +21,7 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, Session, mapped_column
 
+from payrecover.infrastructure.database import incident_models  # noqa: F401
 from payrecover.infrastructure.database.base import Base
 
 
@@ -187,6 +188,15 @@ class PaymentEventRow(Base):
 class AuditRecordRow(Base):
     __tablename__ = "audit_records"
     __table_args__ = (
+        CheckConstraint(
+            "(event_type IN ('incident.opened','incident.observation_updated','incident.resolved') "
+            "AND incident_id IS NOT NULL AND payment_event_id IS NULL) OR "
+            "(event_type NOT IN "
+            "('incident.opened','incident.observation_updated','incident.resolved') "
+            "AND incident_id IS NULL)", name="incident_subject",
+        ),
+        Index("ix_audit_incident_history", "incident_id", "id",
+              postgresql_where=text("incident_id IS NOT NULL")),
         CheckConstraint("CHAR_LENGTH(BTRIM(event_type)) > 0", name="event_type_nonblank"),
         CheckConstraint("CHAR_LENGTH(BTRIM(actor_type)) > 0", name="actor_type_nonblank"),
         CheckConstraint(
@@ -206,6 +216,9 @@ class AuditRecordRow(Base):
 
     id: Mapped[int] = mapped_column(BigInteger, Identity(always=True), primary_key=True)
     correlation_id: Mapped[UUID]
+    incident_id: Mapped[int | None] = mapped_column(
+        ForeignKey("incidents.id", ondelete="RESTRICT")
+    )
     payment_event_id: Mapped[UUID | None] = mapped_column(
         ForeignKey("payment_events.id", ondelete="RESTRICT")
     )

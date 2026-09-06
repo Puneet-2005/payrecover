@@ -54,4 +54,10 @@ Amount bands in paise are `[1, 50000)`, `[50000, 100000)`, `[100000, 200000)`, `
 
 Detector `degradation-v2` uses integer counts and precision-50 `Decimal` arithmetic. For baseline successes `Bs` of `Bn` and observation successes `Os` of `On`, its stabilized pooled proportion is `p = (Bs + Os + 1) / (Bn + On + 2)` and its score denominator is `sqrt(p * (1-p) * (1/Bn + 1/On))`. Degradation requires at least 100 baseline and 30 observation events, an absolute success-rate drop of at least 0.10, and a score of at least 3.0. Severity starts at drops of 0.10, 0.20 and 0.35 for medium, high and critical respectively.
 
-The analytics repository returns domain records and never commits. There is no HTTP endpoint, scheduler, scan record, incident table, lifecycle transition, audit write or recovery action in Phase 3A1. Those orchestration and persistence concerns remain Phase 3A2 work.
+The analytics repository returns domain records and never commits. Phase 3A1 contains no HTTP endpoint, scheduler or persistence orchestration. Phase 3A2 now supplies incident orchestration around that unchanged kernel.
+
+## Phase 3A2 incident boundary
+
+`explicit local CLI -> merchant transaction lock -> scan identity -> analytics -> lifecycle -> evidence + audits -> commit`
+
+The scan service owns the commit and rollback boundary; repositories only read, insert, flush and update. PostgreSQL advisory transaction locks serialize all scans for a merchant, while different merchants can proceed independently. Unique scan identities and a partial unique open-incident index provide database enforcement. Observations preserve opening evidence and the history of each classification. Counts and amounts are stored exactly; rates and scores retain the existing twelve-decimal output convention without reclassifying rounded values. See [incidents.md](incidents.md) for schema and operational behavior.

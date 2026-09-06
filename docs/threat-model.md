@@ -19,6 +19,8 @@ Protected assets: merchant revenue, payment credentials, customer identifiers, r
 
 This is a living engineering document, not a security certification.
 
+Phase 3A2 merchant query parameters are scope filters, not authentication. Incident read routes must remain local-development interfaces until real access control exists. Merchant advisory transaction locks serialize lifecycle updates, and unique scan/open-incident constraints suppress duplicates. Evidence and audits commit atomically; error distributions are bounded to 20 codes and contain no payment IDs or customer payloads. Unsigned pagination cursors are strictly validated but never treated as authorization. Resolution is a relative detector result, not proof of outage recovery.
+
 Phase 2A audit append-only checks cover repository usage and normal ORM mutation/deletion. They do not stop bulk SQL or privileged database access; restricted production database roles are required. Chained hashes remain future work.
 
 Phase 2B is a test-webhook boundary, not a production security certification. Repeated invalid deliveries and conflict-audit failures require operational monitoring. Secret rotation and connected-account tenancy require separate production design.

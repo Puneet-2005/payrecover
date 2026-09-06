@@ -2,6 +2,8 @@
 
 Never commit Razorpay keys, webhook secrets, real customer data or production payment identifiers. This repository defaults to test/simulated transactions. Report vulnerabilities privately to the repository owner rather than opening a public issue.
 
+Phase 3A2 incident read endpoints are local-development interfaces without authentication. A required merchant parameter filters data but does not establish tenant identity. Bind to loopback and do not expose these routes as a production multi-tenant service. Incident evidence contains bounded aggregate operational data only; incident auditing shares the state transaction and does not authorize payment actions.
+
 Phase 2A persists only allowlisted normalized payment fields and a SHA-256 payload digest. It does not store raw HTTP payloads, credentials, authorization headers or customer contact/card data. Database URLs are treated as secrets and must not be logged.
 
 Phase 2B verifies Razorpay webhook signatures over the exact raw body before parsing. `RAZORPAY_WEBHOOK_SECRET` is a lazy `SecretStr` setting and is separate from Razorpay API credentials. Requests require one signature header, one provider event-ID header, JSON content type and a body no larger than 256 KiB. Declared and streamed sizes are checked independently.

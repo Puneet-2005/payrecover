@@ -41,6 +41,8 @@
 - Idempotent controlled scans and concurrent incident deduplication
 - Incident observations, resolution hysteresis and append-only audits
 - Merchant-scoped read-only incident APIs
+- Local argparse scan CLI and disposable PostgreSQL lifecycle/migration tests
+- Implemented for local development; real access control remains required before public exposure
 
 ## Later Phase 3 work
 

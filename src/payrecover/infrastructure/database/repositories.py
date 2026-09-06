@@ -5,6 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
 
+from payrecover.domain.incidents import INCIDENT_AUDIT_SCHEMAS
 from payrecover.domain.records import (
     NewAuditRecord,
     NewPaymentEvent,
@@ -47,6 +48,7 @@ def _stored_payment_event(row: PaymentEventRow) -> StoredPaymentEvent:
 def _stored_audit_record(row: AuditRecordRow) -> StoredAuditRecord:
     return StoredAuditRecord(
         id=row.id,
+        incident_id=row.incident_id,
         correlation_id=row.correlation_id,
         payment_event_id=row.payment_event_id,
         event_type=row.event_type,
@@ -106,13 +108,23 @@ class SqlAlchemyAuditRepository:
         self._session = session
 
     def append(self, record: NewAuditRecord) -> StoredAuditRecord:
+        details = record.details
+        if record.event_type in INCIDENT_AUDIT_SCHEMAS:
+            if record.incident_id is None or record.payment_event_id is not None:
+                raise ValueError("Incident audit requires only an incident subject")
+            details = INCIDENT_AUDIT_SCHEMAS[record.event_type].model_validate(
+                details
+            ).model_dump(mode="json")
+        elif record.incident_id is not None:
+            raise ValueError("Incident audit event type is not allowed")
         row = AuditRecordRow(
+            incident_id=record.incident_id,
             correlation_id=record.correlation_id,
             payment_event_id=record.payment_event_id,
             event_type=record.event_type,
             actor_type=record.actor_type,
             actor_ref_digest=record.actor_ref_digest,
-            details=record.details,
+            details=details,
         )
         self._session.add(row)
         self._session.flush()

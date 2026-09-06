@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from payrecover.infrastructure.database.analytics import (
     SqlAlchemyPaymentAnalyticsRepository,
 )
+from payrecover.infrastructure.database.incidents import SqlAlchemyIncidentRepository
 from payrecover.infrastructure.database.repositories import (
     SqlAlchemyAuditRepository,
     SqlAlchemyPaymentEventRepository,
@@ -19,6 +20,7 @@ class SqlAlchemyUnitOfWork:
         self.payment_events: SqlAlchemyPaymentEventRepository
         self.audit_records: SqlAlchemyAuditRepository
         self.payment_analytics: SqlAlchemyPaymentAnalyticsRepository
+        self.incidents: SqlAlchemyIncidentRepository
         self._committed = False
 
     def __enter__(self) -> "SqlAlchemyUnitOfWork":
@@ -26,6 +28,7 @@ class SqlAlchemyUnitOfWork:
         self.payment_events = SqlAlchemyPaymentEventRepository(self.session)
         self.audit_records = SqlAlchemyAuditRepository(self.session)
         self.payment_analytics = SqlAlchemyPaymentAnalyticsRepository(self.session)
+        self.incidents = SqlAlchemyIncidentRepository(self.session)
         self._committed = False
         return self
 
