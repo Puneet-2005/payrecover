@@ -9,6 +9,7 @@ from sqlalchemy import (
     CheckConstraint,
     DateTime,
     ForeignKey,
+    ForeignKeyConstraint,
     Identity,
     Index,
     Integer,
@@ -23,6 +24,7 @@ from sqlalchemy.orm import Mapped, Session, mapped_column
 
 from payrecover.infrastructure.database import incident_models  # noqa: F401
 from payrecover.infrastructure.database.base import Base
+from payrecover.infrastructure.database.planning_models import AUDIT_SUBJECT_CHECK
 
 
 class AuditRecordMutationError(RuntimeError):
@@ -32,6 +34,8 @@ class AuditRecordMutationError(RuntimeError):
 class PaymentEventRow(Base):
     __tablename__ = "payment_events"
     __table_args__ = (
+        UniqueConstraint("id", "merchant_id", "source", "payment_id",
+                         name="uq_payment_planning_subject"),
         UniqueConstraint(
             "source",
             "merchant_id",
@@ -188,13 +192,18 @@ class PaymentEventRow(Base):
 class AuditRecordRow(Base):
     __tablename__ = "audit_records"
     __table_args__ = (
-        CheckConstraint(
-            "(event_type IN ('incident.opened','incident.observation_updated','incident.resolved') "
-            "AND incident_id IS NOT NULL AND payment_event_id IS NULL) OR "
-            "(event_type NOT IN "
-            "('incident.opened','incident.observation_updated','incident.resolved') "
-            "AND incident_id IS NULL)", name="incident_subject",
-        ),
+        CheckConstraint(AUDIT_SUBJECT_CHECK, name="incident_subject"),
+        ForeignKeyConstraint(["diagnosis_id", "incident_id"],
+                             ["incident_diagnoses.id", "incident_diagnoses.incident_id"],
+                             ondelete="RESTRICT", name="fk_audit_diagnosis_subject"),
+        ForeignKeyConstraint(["recovery_plan_id", "diagnosis_id", "incident_id"],
+                             ["recovery_plans.id", "recovery_plans.diagnosis_id",
+                              "recovery_plans.incident_id"],
+                             ondelete="RESTRICT", name="fk_audit_plan_subject"),
+        Index("ix_audit_diagnosis_history", "diagnosis_id", "id",
+              postgresql_where=text("diagnosis_id IS NOT NULL")),
+        Index("ix_audit_plan_history", "recovery_plan_id", "id",
+              postgresql_where=text("recovery_plan_id IS NOT NULL")),
         Index("ix_audit_incident_history", "incident_id", "id",
               postgresql_where=text("incident_id IS NOT NULL")),
         CheckConstraint("CHAR_LENGTH(BTRIM(event_type)) > 0", name="event_type_nonblank"),
@@ -216,6 +225,8 @@ class AuditRecordRow(Base):
 
     id: Mapped[int] = mapped_column(BigInteger, Identity(always=True), primary_key=True)
     correlation_id: Mapped[UUID]
+    diagnosis_id: Mapped[UUID | None]
+    recovery_plan_id: Mapped[UUID | None]
     incident_id: Mapped[int | None] = mapped_column(
         ForeignKey("incidents.id", ondelete="RESTRICT")
     )

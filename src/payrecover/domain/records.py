@@ -102,6 +102,8 @@ class NewAuditRecord:
     actor_ref_digest: str | None
     details: dict[str, Any]
     incident_id: int | None = None
+    diagnosis_id: UUID | None = None
+    recovery_plan_id: UUID | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -115,3 +117,5 @@ class StoredAuditRecord:
     details: dict[str, Any]
     recorded_at: datetime
     incident_id: int | None = None
+    diagnosis_id: UUID | None = None
+    recovery_plan_id: UUID | None = None

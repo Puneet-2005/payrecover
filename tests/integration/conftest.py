@@ -14,7 +14,8 @@ from payrecover.infrastructure.database.session import build_engine
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 REQUIRED_TABLES = {"alembic_version", "audit_records", "payment_events", "incident_scan_runs",
-                   "incidents", "incident_observations", "incident_error_counts"}
+                   "incidents", "incident_observations", "incident_error_counts",
+                   "incident_diagnoses", "recovery_plans"}
 
 
 def alembic_config(database_url: str) -> Config:

@@ -6,6 +6,7 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
 
 from payrecover.domain.incidents import INCIDENT_AUDIT_SCHEMAS
+from payrecover.domain.planning import PlanningAudit
 from payrecover.domain.records import (
     NewAuditRecord,
     NewPaymentEvent,
@@ -48,6 +49,8 @@ def _stored_payment_event(row: PaymentEventRow) -> StoredPaymentEvent:
 def _stored_audit_record(row: AuditRecordRow) -> StoredAuditRecord:
     return StoredAuditRecord(
         id=row.id,
+        diagnosis_id=row.diagnosis_id,
+        recovery_plan_id=row.recovery_plan_id,
         incident_id=row.incident_id,
         correlation_id=row.correlation_id,
         payment_event_id=row.payment_event_id,
@@ -109,7 +112,16 @@ class SqlAlchemyAuditRepository:
 
     def append(self, record: NewAuditRecord) -> StoredAuditRecord:
         details = record.details
-        if record.event_type in INCIDENT_AUDIT_SCHEMAS:
+        if record.event_type in {"incident.diagnosed", "recovery_plan.created"}:
+            if (record.incident_id is None or record.diagnosis_id is None
+                    or record.payment_event_id is not None
+                    or (record.recovery_plan_id is not None)
+                    != (record.event_type == "recovery_plan.created")):
+                raise ValueError("Invalid planning audit subject")
+            details = PlanningAudit.model_validate(details).model_dump(mode="json")
+        elif record.diagnosis_id is not None or record.recovery_plan_id is not None:
+            raise ValueError("Unexpected planning audit subject")
+        elif record.event_type in INCIDENT_AUDIT_SCHEMAS:
             if record.incident_id is None or record.payment_event_id is not None:
                 raise ValueError("Incident audit requires only an incident subject")
             details = INCIDENT_AUDIT_SCHEMAS[record.event_type].model_validate(
@@ -118,6 +130,8 @@ class SqlAlchemyAuditRepository:
         elif record.incident_id is not None:
             raise ValueError("Incident audit event type is not allowed")
         row = AuditRecordRow(
+            diagnosis_id=record.diagnosis_id,
+            recovery_plan_id=record.recovery_plan_id,
             incident_id=record.incident_id,
             correlation_id=record.correlation_id,
             payment_event_id=record.payment_event_id,

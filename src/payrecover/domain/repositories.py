@@ -3,6 +3,7 @@ from uuid import UUID
 
 from payrecover.domain.analytics import AnalyticsWindow, CohortAggregate
 from payrecover.domain.incidents import IncidentRepository
+from payrecover.domain.planning import PlanningRepository
 from payrecover.domain.records import (
     NewAuditRecord,
     NewPaymentEvent,
@@ -38,6 +39,9 @@ class PaymentAnalyticsRepository(Protocol):
 
 
 class UnitOfWork(Protocol):
+    @property
+    def planning(self) -> PlanningRepository: ...
+
     @property
     def incidents(self) -> IncidentRepository: ...
 

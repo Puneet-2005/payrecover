@@ -46,7 +46,10 @@
 
 ## Later Phase 3 work
 
-- Root-cause evidence ranking
+Phase 3B implements evidence-based diagnosis, immutable versioned recommendations, transactional
+audit history and a local planning CLI. See [planning.md](planning.md). Execution remains deferred.
+
+- Provider-specific evidence mappings and authoritative prerequisite verification
 - Recovery executor against a local Razorpay test adapter
 - Backoff scheduler, stopping rules and human approval queue
 

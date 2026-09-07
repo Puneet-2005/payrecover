@@ -11,3 +11,6 @@ Read `README.md`, `docs/architecture.md`, `docs/threat-model.md`, and `docs/road
 - Keep PR-sized changes and explain them so the student owner can defend them in an interview.
 
 Current boundary: Phase 3A2 adds persistent incident scanning, lifecycle history, a local CLI and merchant-scoped development read APIs. Reuse the Phase 3A1 analytics kernel. Recovery execution, payment actions, AI, scheduling, Redis integration and dashboard work require a separate authorization.
+
+Phase 3B adds local evidence-based diagnosis and immutable deterministic recommendations only.
+See docs/planning.md. Plans never authorize execution; legacy policy/API behavior remains unchanged.

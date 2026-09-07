@@ -473,9 +473,9 @@ def test_upgrade_with_existing_phase3a1_data_and_reupgrade(clean_database, migra
             )
             assert (
                 connection.scalar(text("SELECT version_num FROM alembic_version"))
-                == "20260905_0004"
+                == "20260907_0005"
             )
-        command.downgrade(config, "-1")
+        command.downgrade(config, "20260904_0003")
         assert "incidents" not in inspect(clean_database).get_table_names()
         command.upgrade(config, "head")
         with clean_database.connect() as connection:
@@ -601,7 +601,7 @@ def test_downgrade_refuses_to_orphan_incident_audits(clean_database, migrated_da
     config = Config("alembic.ini")
     config.set_main_option("sqlalchemy.url", migrated_database_url)
     with pytest.raises(DatabaseError, match="Cannot downgrade while incident audits exist"):
-        command.downgrade(config, "-1")
+        command.downgrade(config, "20260904_0003")
     # A new connection/Inspector must observe committed schema and data after the refusal.
     with clean_database.connect() as connection:
         schema = inspect(connection)
@@ -626,7 +626,7 @@ def test_downgrade_refuses_to_orphan_incident_audits(clean_database, migrated_da
         assert "incident_id IS NOT NULL" in index["dialect_options"]["postgresql_where"]
         for table, rows in before.items():
             assert connection.execute(text(f"SELECT * FROM {table}")).mappings().all() == rows
-        assert connection.scalar(text("SELECT version_num FROM alembic_version")) == "20260905_0004"
+        assert connection.scalar(text("SELECT version_num FROM alembic_version")) == "20260907_0005"
     assert counts(clean_database) == (1, 1, 1, 1, 1)
 
 

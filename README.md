@@ -150,6 +150,18 @@ Use the returned `next_cursor` as `cursor` to continue. Limits are 1–100; deta
 
 These interfaces have **no authentication**. Merchant filtering is not access control. Bind the API to loopback for local development; do not expose it publicly as a production multi-tenant service. See [incident design and schema](docs/incidents.md) for transaction, pagination, migration and retention details.
 
+## Phase 3B local planning
+
+Phase 3B adds explicit local diagnosis and immutable, non-executable recovery recommendations:
+
+```text
+python -m payrecover.planning_cli --help
+```
+
+See [planning.md](docs/planning.md) for commands, evidence association, policy rules, prerequisites,
+replay behavior and migration constraints. Every plan has `execution_authorized=false`; no payment
+or notification is sent. Replays return historical advice, not refreshed execution eligibility.
+
 ## Continue with Codex
 
 Tell Codex:

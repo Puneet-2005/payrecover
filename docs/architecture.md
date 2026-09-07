@@ -61,3 +61,9 @@ The analytics repository returns domain records and never commits. Phase 3A1 con
 `explicit local CLI -> merchant transaction lock -> scan identity -> analytics -> lifecycle -> evidence + audits -> commit`
 
 The scan service owns the commit and rollback boundary; repositories only read, insert, flush and update. PostgreSQL advisory transaction locks serialize all scans for a merchant, while different merchants can proceed independently. Unique scan identities and a partial unique open-incident index provide database enforcement. Observations preserve opening evidence and the history of each classification. Counts and amounts are stored exactly; rates and scores retain the existing twelve-decimal output convention without reclassifying rounded values. See [incidents.md](incidents.md) for schema and operational behavior.
+
+Phase 3B reuses those observations and merchant transaction locks for explicit local diagnosis and
+planning. Composite foreign keys enforce subject identity; services commit diagnoses, recommendations
+and sanitized audits atomically. The individual event's reviewed signal drives the versioned policy,
+separately from cohort-level inference. Recommendations are immutable historical advice with
+`execution_authorized=false`. See [planning.md](planning.md) for the complete boundary.

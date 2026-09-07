@@ -24,3 +24,10 @@ Phase 3A2 merchant query parameters are scope filters, not authentication. Incid
 Phase 2A audit append-only checks cover repository usage and normal ORM mutation/deletion. They do not stop bulk SQL or privileged database access; restricted production database roles are required. Chained hashes remain future work.
 
 Phase 2B is a test-webhook boundary, not a production security certification. Repeated invalid deliveries and conflict-audit failures require operational monitoring. Secret rotation and connected-account tenancy require separate production design.
+
+Phase 3B prevents cross-merchant planning subjects with composite FKs and scoped repository queries.
+Unique payment/policy identities and transactional audits suppress duplicate recommendations. Missing
+consent, unverified flow/status/attempt history and contradictory history remain explicit blockers.
+Historical replay does not refresh eligibility. A database CHECK prohibits execution authorization.
+Append-only application guards do not protect against privileged SQL. No provider execution or
+customer notification is available; see [planning.md](planning.md).

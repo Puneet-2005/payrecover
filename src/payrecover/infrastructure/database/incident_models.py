@@ -164,6 +164,9 @@ class ObservationRow(Base):
     __tablename__ = "incident_observations"
     __table_args__ = (
         UniqueConstraint("incident_id", "scan_id", name="uq_incident_observation_scan"),
+        UniqueConstraint(
+            "id", "incident_id", "merchant_id", name="uq_observation_planning_subject"
+        ),
         ForeignKeyConstraint(
             ["incident_id", "merchant_id", "detector_version"],
             ["incidents.id", "incidents.merchant_id", "incidents.detector_version"],
