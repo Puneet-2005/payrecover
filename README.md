@@ -164,6 +164,10 @@ or notification is sent. Replays return historical advice, not refreshed executi
 
 ## Continue with Codex
 
+Before continuing, see [Phase 4 simulation](docs/simulation.md) for dedicated-database setup and
+`python -m payrecover.simulation_cli run --run-key demo-42 --seed 42`.
+This records synthetic-only outcomes, never real payment authorization or money recovered.
+
 Tell Codex:
 
 > Read CODEX.md and all linked architecture documents. Inspect the current tests. Propose the next reviewable milestone after Phase 2A; wait for my confirmation before editing.

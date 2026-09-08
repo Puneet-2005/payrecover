@@ -473,7 +473,7 @@ def test_upgrade_with_existing_phase3a1_data_and_reupgrade(clean_database, migra
             )
             assert (
                 connection.scalar(text("SELECT version_num FROM alembic_version"))
-                == "20260907_0005"
+                == "20260907_0006"
             )
         command.downgrade(config, "20260904_0003")
         assert "incidents" not in inspect(clean_database).get_table_names()
@@ -626,7 +626,7 @@ def test_downgrade_refuses_to_orphan_incident_audits(clean_database, migrated_da
         assert "incident_id IS NOT NULL" in index["dialect_options"]["postgresql_where"]
         for table, rows in before.items():
             assert connection.execute(text(f"SELECT * FROM {table}")).mappings().all() == rows
-        assert connection.scalar(text("SELECT version_num FROM alembic_version")) == "20260907_0005"
+        assert connection.scalar(text("SELECT version_num FROM alembic_version")) == "20260907_0006"
     assert counts(clean_database) == (1, 1, 1, 1, 1)
 
 

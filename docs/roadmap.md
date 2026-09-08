@@ -56,6 +56,8 @@ audit history and a local planning CLI. See [planning.md](planning.md). Executio
 ## Phase 4 — evaluation
 
 - Seeded synthetic generator for at least 50,000 events
+- Local isolated simulation harness and persisted reporting: see docs/simulation.md.
+- Held-out campaigns and causal comparisons below remain deferred; synthetic outcomes are not revenue.
 - Hidden incident manifest and held-out scenarios
 - Detection recall, false-positive rate, MTTD, RCA accuracy
 - Recovered-revenue and unsafe-attempt metrics

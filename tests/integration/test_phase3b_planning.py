@@ -404,7 +404,7 @@ def test_migration_cycle_and_refusal_preserve_history(clean_database, migrated_d
     plan(clean_database, event)
     before = snapshot(clean_database)
     with pytest.raises(DatabaseError, match="Cannot downgrade while planning history exists"):
-        command.downgrade(config, "-1")
+        command.downgrade(config, "20260905_0004")
     with clean_database.connect() as connection:
         schema = inspect(connection)
         assert {"incident_diagnoses", "recovery_plans"} <= set(schema.get_table_names())
@@ -420,7 +420,7 @@ def test_migration_cycle_and_refusal_preserve_history(clean_database, migrated_d
         assert {"ix_audit_diagnosis_history", "ix_audit_plan_history"} <= {
             c["name"] for c in schema.get_indexes("audit_records")
         }
-        assert connection.scalar(text("SELECT version_num FROM alembic_version")) == "20260907_0005"
+        assert connection.scalar(text("SELECT version_num FROM alembic_version")) == "20260907_0006"
     assert snapshot(clean_database) == before
 
 

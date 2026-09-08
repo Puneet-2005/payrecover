@@ -6,7 +6,10 @@ from sqlalchemy import engine_from_config, pool
 
 from alembic import context
 from payrecover.config import Settings
-from payrecover.infrastructure.database import models  # noqa: F401
+from payrecover.infrastructure.database import (
+    models,  # noqa: F401
+    simulation_models,  # noqa: F401
+)
 from payrecover.infrastructure.database.base import Base
 
 config = context.config

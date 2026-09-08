@@ -92,6 +92,8 @@ class DiagnosisRow(Base):
 class PlanRow(Base):
     __tablename__ = "recovery_plans"
     __table_args__ = (
+        UniqueConstraint("id", "merchant_id", "source", "payment_id",
+                         name="uq_sim_plan_subject"),
         UniqueConstraint(
             "merchant_id", "source", "payment_id", "policy_version", name="uq_plan_payment_policy"
         ),

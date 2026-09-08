@@ -14,3 +14,6 @@ Current boundary: Phase 3A2 adds persistent incident scanning, lifecycle history
 
 Phase 3B adds local evidence-based diagnosis and immutable deterministic recommendations only.
 See docs/planning.md. Plans never authorize execution; legacy policy/API behavior remains unchanged.
+
+Phase 4 adds only the isolated synthetic simulation described in docs/simulation.md. Use its dedicated
+marked database, existing business services and logical time. No provider execution or later phases.
