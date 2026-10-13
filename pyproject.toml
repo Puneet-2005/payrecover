@@ -1,4 +1,4 @@
-[project]
+        [project]
 name = "payrecover"
 version = "0.1.0"
 description = "Payment degradation detection and bounded revenue recovery engine"

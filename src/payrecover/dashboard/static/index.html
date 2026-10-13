@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PayRecover · Simulation explorer</title>
+  <link rel="stylesheet" href="/static/dashboard.css">
+  <script src="/static/dashboard.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#content">Skip to evidence</a>
+  <header><a class="brand" href="#">PayRecover<span>Simulation explorer</span></a>
+    <span class="badge">READ ONLY · LOCAL DEMO</span></header>
+  <div class="notice">SIMULATION ONLY — No real money recovered. Recommendations never authorize execution.</div>
+  <div class="layout">
+    <aside><h2>Explore the evidence</h2><nav id="navigation" aria-label="Primary navigation"></nav>
+      <p>Detection → diagnosis → historical advice → simulated outcome.</p>
+      <p class="muted">Deterministic diagnosis, not an LLM. AI integration and broader held-out evaluation are pending.</p></aside>
+    <main id="content" tabindex="-1"><div id="status" role="status" aria-live="polite"></div><div id="view"></div></main>
+  </div>
+  <footer>Local simulation data · No provider calls · No execution controls · Public deployment requires authentication.</footer>
+</body>
+</html>

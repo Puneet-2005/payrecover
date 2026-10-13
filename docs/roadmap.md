@@ -65,7 +65,7 @@ audit history and a local planning CLI. See [planning.md](planning.md). Executio
 
 ## Phase 5 — presentation
 
-- Operational dashboard
+- Local read-only simulation dashboard: see [dashboard.md](dashboard.md). No production authentication.
 - Reproducible benchmark report with real outputs
 - Five-minute demo script and architecture diagram
 - Public-repo cleanup, SECURITY.md and contribution guide

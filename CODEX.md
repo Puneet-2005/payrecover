@@ -17,3 +17,7 @@ See docs/planning.md. Plans never authorize execution; legacy policy/API behavio
 
 Phase 4 adds only the isolated synthetic simulation described in docs/simulation.md. Use its dedicated
 marked database, existing business services and logical time. No provider execution or later phases.
+
+Phase 5 adds the separate localhost-only, read-only simulation dashboard in docs/dashboard.md.
+Use only the explicitly configured marked simulation database. Never initialize it while browsing.
+Historical reports and advice remain historical; AI and broader held-out evaluation remain pending.

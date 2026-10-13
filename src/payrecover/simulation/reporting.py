@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 
 from payrecover.infrastructure.database.models import PaymentEventRow
 from payrecover.infrastructure.database.simulation import SimulationStore
+from payrecover.simulation.classification import classify_payment
 
 
 def report(store: SimulationStore, merchant: str) -> dict[str, Any]:
@@ -43,17 +44,12 @@ def report(store: SimulationStore, merchant: str) -> dict[str, Any]:
             records = store.attempts(payment.payment_id)
             attempts += len(records)
             uncertain += sum(a.state in ("reserved", "uncertain") for a in records)
-            if history[0] != 1:
+            category = classify_payment(
+                history[0], bool(history[1]), any(a.state == "succeeded" for a in records)
+            )
+            if category == "excluded":
                 excluded += 1
                 continue
-            succeeded = any(a.state == "succeeded" for a in records)
-            category = (
-                "already_successful"
-                if history[1]
-                else "simulated_recovered"
-                if succeeded
-                else "unresolved"
-            )
             categories[category] += 1
             amounts[category] += payment.amount_paise
             amounts["total"] += payment.amount_paise

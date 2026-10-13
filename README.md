@@ -174,6 +174,12 @@ Tell Codex:
 
 This forces the work into explainable engineering increments instead of uncontrolled vibe coding.
 
+## Phase 5 local simulation dashboard
+
+See [dashboard startup and walkthrough](docs/dashboard.md). The separate localhost-only app
+explores persisted simulation evidence and historical recommendations; it has no execution controls
+or authentication. AI integration and broader held-out evaluation remain pending.
+
 ## Scope and claims
 
 - Test-mode and simulated payments only.
